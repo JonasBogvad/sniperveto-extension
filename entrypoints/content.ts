@@ -1,4 +1,4 @@
-// Content script — runs on Steam profile pages
+// Content script — runs on Steam profile pages.
 // Extracts Steam ID + name, asks background worker to query SniperVeto, injects panel.
 
 const SITE_URL = 'https://sniperveto.vercel.app';
@@ -33,12 +33,12 @@ export default defineContentScript({
     if (!target) return;
 
     const steamName = getSteamName();
-    const panel = createPanel(steamId, steamName);
+    const { panel, status } = createPanel(steamId, steamName);
     target.insertAdjacentElement('beforebegin', panel);
 
     chrome.runtime.sendMessage(
       { type: 'CHECK_STEAM_ID', steamId },
-      (res: BgResponse) => updatePanel(panel, steamId, steamName, res),
+      (res: BgResponse) => updateStatus(status, steamId, res),
     );
   },
 });
@@ -48,7 +48,7 @@ export default defineContentScript({
 // ─────────────────────────────────────────────
 
 function getSteamId(): string | null {
-  // /profiles/76561198XXXXXXXXX — ID is in the URL
+  // /profiles/76561198XXXXXXXXX — ID is directly in the URL
   const profileMatch = window.location.pathname.match(/^\/profiles\/(\d{17})/);
   if (profileMatch) return profileMatch[1];
 
@@ -62,11 +62,10 @@ function getSteamId(): string | null {
 }
 
 function getSteamName(): string {
-  // Steam profile pages embed the persona name here
   const el = document.querySelector('.actual_persona_name');
   if (el?.textContent) return el.textContent.trim();
 
-  // Fallback: "Steam Community :: Name"
+  // Fallback: page title is "Steam Community :: Name"
   const titleMatch = document.title.match(/^Steam Community :: (.+)$/);
   if (titleMatch) return titleMatch[1];
 
@@ -99,55 +98,55 @@ function reportUrl(steamId: string, steamName: string): string {
   return `${SITE_URL}/report?${params.toString()}`;
 }
 
-function createPanel(steamId: string, steamName: string): HTMLElement {
+// Build panel using DOM methods — no innerHTML with external data
+function createPanel(steamId: string, steamName: string): { panel: HTMLElement; status: HTMLElement } {
   const panel = document.createElement('div');
   panel.id = 'sniperveto-panel';
-  panel.style.cssText = `
-    width: 100%;
-    padding: 8px 16px;
-    background: #1b2838;
-    border-top: 2px solid #4c6b22;
-    border-bottom: 2px solid #4c6b22;
-    font-family: Arial, sans-serif;
-    font-size: 13px;
-    color: #c6d4df;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-    box-sizing: border-box;
-  `;
-  panel.innerHTML = `
-    <div style="display:flex;align-items:center;gap:8px;">
-      <span id="sv-status">SniperVeto: checking...</span>
-    </div>
-    <a
-      href="${reportUrl(steamId, steamName)}"
-      target="_blank"
-      rel="noopener"
-      style="
-        padding: 4px 10px;
-        background: #c0392b;
-        color: #fff;
-        border-radius: 3px;
-        font-size: 12px;
-        font-weight: bold;
-        text-decoration: none;
-        white-space: nowrap;
-        flex-shrink: 0;
-      "
-    >+ Report</a>
-  `;
-  return panel;
+  Object.assign(panel.style, {
+    width: '100%',
+    padding: '8px 16px',
+    background: '#1b2838',
+    borderTop: '2px solid #4c6b22',
+    borderBottom: '2px solid #4c6b22',
+    fontFamily: 'Arial, sans-serif',
+    fontSize: '13px',
+    color: '#c6d4df',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: '8px',
+    boxSizing: 'border-box',
+  });
+
+  const status = document.createElement('span');
+  status.id = 'sv-status';
+  status.textContent = 'SniperVeto: checking...';
+
+  const reportBtn = document.createElement('a');
+  reportBtn.href = reportUrl(steamId, steamName); // URL-encoded by URLSearchParams
+  reportBtn.target = '_blank';
+  reportBtn.rel = 'noopener noreferrer';
+  reportBtn.textContent = '+ Report';
+  Object.assign(reportBtn.style, {
+    padding: '4px 10px',
+    background: '#c0392b',
+    color: '#fff',
+    borderRadius: '3px',
+    fontSize: '12px',
+    fontWeight: 'bold',
+    textDecoration: 'none',
+    whiteSpace: 'nowrap',
+    flexShrink: '0',
+  });
+
+  panel.appendChild(status);
+  panel.appendChild(reportBtn);
+
+  return { panel, status };
 }
 
-function updatePanel(
-  panel: HTMLElement,
-  steamId: string,
-  steamName: string,
-  res: BgResponse | null,
-): void {
-  const status = panel.querySelector('#sv-status') as HTMLElement;
+function updateStatus(status: HTMLElement, steamId: string, res: BgResponse | null): void {
+  const panel = status.parentElement;
 
   if (!res?.ok) {
     status.textContent = 'SniperVeto: could not connect';
@@ -158,12 +157,29 @@ function updatePanel(
   const count = reports.length;
 
   if (count === 0) {
-    panel.style.borderColor = '#4caf50';
+    if (panel) panel.style.borderColor = '#4caf50';
     status.textContent = 'Not in SniperVeto database';
   } else {
-    panel.style.borderColor = '#e8a838';
-    panel.style.background = '#2a1f0a';
-    const viewUrl = `${SITE_URL}?steamId=${steamId}`;
-    status.innerHTML = `<strong>${count} report${count > 1 ? 's' : ''}</strong> in SniperVeto — <a href="${viewUrl}" target="_blank" rel="noopener" style="color:#e8a838;text-decoration:underline">View</a>`;
+    if (panel) {
+      panel.style.borderColor = '#e8a838';
+      panel.style.background = '#2a1f0a';
+    }
+
+    // Build the "X reports" + "View" link with DOM methods
+    status.textContent = '';
+
+    const bold = document.createElement('strong');
+    bold.textContent = `${count} report${count > 1 ? 's' : ''}`;
+    status.appendChild(bold);
+
+    status.appendChild(document.createTextNode(' in SniperVeto — '));
+
+    const link = document.createElement('a');
+    link.href = `${SITE_URL}?steamId=${steamId}`; // steamId is validated: /\d{17}/
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    link.textContent = 'View';
+    Object.assign(link.style, { color: '#e8a838', textDecoration: 'underline' });
+    status.appendChild(link);
   }
 }
