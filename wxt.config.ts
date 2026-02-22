@@ -22,5 +22,11 @@ export default defineConfig({
       48: 'icons/icon-48.png',
       128: 'icons/icon-128.png',
     },
+    web_accessible_resources: [
+      {
+        resources: ['icons/icon-16.png'],
+        matches: ['https://steamcommunity.com/*'],
+      },
+    ],
   },
 });
