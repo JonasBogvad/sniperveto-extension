@@ -137,7 +137,7 @@ function createPanel(
   panel.id = 'sniperveto-panel';
 
   // Brand icon
-  const icon = el('img', { width: '42px', height: '42px', objectFit: 'contain', flexShrink: '0' }, {
+  const icon = el('img', { width: '32px', height: '32px', objectFit: 'contain', flexShrink: '0' }, {
     src: chrome.runtime.getURL('icons/icon-48.png'),
     alt: 'SniperVeto',
   });
