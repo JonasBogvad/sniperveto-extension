@@ -142,10 +142,6 @@ function createPanel(
     alt: 'SniperVeto',
   });
 
-  // Small brand label
-  const brand = el('span', { color: '#8f98a0', fontSize: '11px', letterSpacing: '0.03em' });
-  brand.textContent = 'SniperVeto';
-
   // Divider
   const divider = el('span', { color: 'rgba(255,255,255,0.15)', fontSize: '14px' });
   divider.textContent = '|';
@@ -189,7 +185,6 @@ function createPanel(
   report.addEventListener('mouseleave', () => { report.style.color = '#8f98a0'; });
 
   panel.appendChild(icon);
-  panel.appendChild(brand);
   panel.appendChild(divider);
   panel.appendChild(dot);
   panel.appendChild(label);
