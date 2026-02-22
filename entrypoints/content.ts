@@ -1,0 +1,124 @@
+// Content script — runs on Steam profile pages
+// Extracts Steam ID, asks background worker to query SniperVeto, injects panel.
+
+const SITE_URL = 'https://sniperveto.vercel.app';
+
+interface Report {
+  id: string;
+  steamId: string;
+  steamName: string;
+  reportedBy: string;
+  game: string;
+  severity: string;
+  votes: { total: number };
+}
+
+interface BgResponse {
+  ok: boolean;
+  data?: Report[];
+  error?: string;
+}
+
+export default defineContentScript({
+  matches: [
+    'https://steamcommunity.com/profiles/*',
+    'https://steamcommunity.com/id/*',
+  ],
+
+  async main() {
+    const steamId = getSteamId();
+    if (!steamId) return;
+
+    const target = await waitForElement('.profile_content');
+    if (!target) return;
+
+    const panel = createPanel();
+    target.insertAdjacentElement('beforebegin', panel);
+
+    chrome.runtime.sendMessage(
+      { type: 'CHECK_STEAM_ID', steamId },
+      (res: BgResponse) => updatePanel(panel, steamId, res),
+    );
+  },
+});
+
+// ─────────────────────────────────────────────
+// Helpers
+// ─────────────────────────────────────────────
+
+function getSteamId(): string | null {
+  // /profiles/76561198XXXXXXXXX — ID is in the URL
+  const profileMatch = window.location.pathname.match(/^\/profiles\/(\d{17})/);
+  if (profileMatch) return profileMatch[1];
+
+  // /id/vanityname — find 64-bit Steam ID embedded in page scripts
+  for (const script of document.querySelectorAll('script')) {
+    const match = (script.textContent ?? '').match(/"steamid"\s*:\s*"(\d{17})"/);
+    if (match) return match[1];
+  }
+
+  return null;
+}
+
+function waitForElement(selector: string, timeout = 5000): Promise<Element | null> {
+  return new Promise((resolve) => {
+    const el = document.querySelector(selector);
+    if (el) return resolve(el);
+
+    const observer = new MutationObserver(() => {
+      const found = document.querySelector(selector);
+      if (found) {
+        observer.disconnect();
+        resolve(found);
+      }
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+    setTimeout(() => {
+      observer.disconnect();
+      resolve(null);
+    }, timeout);
+  });
+}
+
+function createPanel(): HTMLElement {
+  const panel = document.createElement('div');
+  panel.id = 'sniperveto-panel';
+  panel.style.cssText = `
+    width: 100%;
+    padding: 8px 16px;
+    background: #1b2838;
+    border-top: 2px solid #4c6b22;
+    border-bottom: 2px solid #4c6b22;
+    font-family: Arial, sans-serif;
+    font-size: 13px;
+    color: #c6d4df;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-sizing: border-box;
+  `;
+  panel.innerHTML = `<span>🔍</span><span id="sv-status">Checking SniperVeto…</span>`;
+  return panel;
+}
+
+function updatePanel(panel: HTMLElement, steamId: string, res: BgResponse | null): void {
+  const status = panel.querySelector('#sv-status') as HTMLElement;
+
+  if (!res?.ok) {
+    status.textContent = 'SniperVeto: could not connect';
+    return;
+  }
+
+  const reports = Array.isArray(res.data) ? res.data : [];
+  const count = reports.length;
+
+  if (count === 0) {
+    panel.style.borderColor = '#4caf50';
+    status.innerHTML = `✅ Not in SniperVeto database`;
+  } else {
+    panel.style.borderColor = '#e8a838';
+    panel.style.background = '#2a1f0a';
+    const url = `${SITE_URL}?steamId=${steamId}`;
+    status.innerHTML = `⚠️ <strong>${count} report${count > 1 ? 's' : ''}</strong> in SniperVeto — <a href="${url}" target="_blank" rel="noopener" style="color:#e8a838;text-decoration:underline">View on SniperVeto</a>`;
+  }
+}
