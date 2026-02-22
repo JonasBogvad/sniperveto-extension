@@ -119,8 +119,7 @@ function createPanel(steamId: string, steamName: string): HTMLElement {
   `;
   panel.innerHTML = `
     <div style="display:flex;align-items:center;gap:8px;">
-      <span>🔍</span>
-      <span id="sv-status">Checking SniperVeto…</span>
+      <span id="sv-status">SniperVeto: checking...</span>
     </div>
     <a
       href="${reportUrl(steamId, steamName)}"
@@ -160,11 +159,11 @@ function updatePanel(
 
   if (count === 0) {
     panel.style.borderColor = '#4caf50';
-    status.innerHTML = `✅ Not in SniperVeto database`;
+    status.textContent = 'Not in SniperVeto database';
   } else {
     panel.style.borderColor = '#e8a838';
     panel.style.background = '#2a1f0a';
     const viewUrl = `${SITE_URL}?steamId=${steamId}`;
-    status.innerHTML = `⚠️ <strong>${count} report${count > 1 ? 's' : ''}</strong> in SniperVeto — <a href="${viewUrl}" target="_blank" rel="noopener" style="color:#e8a838;text-decoration:underline">View</a>`;
+    status.innerHTML = `<strong>${count} report${count > 1 ? 's' : ''}</strong> in SniperVeto — <a href="${viewUrl}" target="_blank" rel="noopener" style="color:#e8a838;text-decoration:underline">View</a>`;
   }
 }
