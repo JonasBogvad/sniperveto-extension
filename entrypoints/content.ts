@@ -137,35 +137,35 @@ function createPanel(
   panel.id = 'sniperveto-panel';
 
   // Small brand label
-  const brand = el('span', { color: '#566573', fontSize: '11px', letterSpacing: '0.03em' });
+  const brand = el('span', { color: '#8f98a0', fontSize: '11px', letterSpacing: '0.03em' });
   brand.textContent = 'SniperVeto';
 
   // Divider
-  const divider = el('span', { color: 'rgba(255,255,255,0.1)', fontSize: '14px' });
+  const divider = el('span', { color: 'rgba(255,255,255,0.15)', fontSize: '14px' });
   divider.textContent = '|';
 
   // Status dot
   const dot = el('span', {
-    width: '6px',
-    height: '6px',
+    width: '7px',
+    height: '7px',
     borderRadius: '50%',
-    background: '#566573',
+    background: '#8f98a0',
     display: 'inline-block',
     flexShrink: '0',
   });
 
   // Status label
-  const label = el('span', { color: '#8f98a0' });
+  const label = el('span', { color: '#c6d4df' });
   label.textContent = 'checking...';
 
   // Report link — muted, styled like a Notion inline action
   const report = el(
     'a',
     {
-      color: '#566573',
+      color: '#8f98a0',
       fontSize: '11px',
       textDecoration: 'none',
-      borderLeft: '1px solid rgba(255,255,255,0.08)',
+      borderLeft: '1px solid rgba(255,255,255,0.1)',
       paddingLeft: '8px',
       marginLeft: '4px',
       cursor: 'pointer',
@@ -180,7 +180,7 @@ function createPanel(
 
   // Hover effect on report link
   report.addEventListener('mouseenter', () => { report.style.color = '#c6d4df'; });
-  report.addEventListener('mouseleave', () => { report.style.color = '#566573'; });
+  report.addEventListener('mouseleave', () => { report.style.color = '#8f98a0'; });
 
   panel.appendChild(brand);
   panel.appendChild(divider);
@@ -211,8 +211,14 @@ function updateStatus(
     label.textContent = 'Clean';
     label.style.color = '#c6d4df';
   } else {
-    dot.style.background = '#e8a838';
-    label.style.color = '#e8a838';
+    dot.style.background = '#e53935';
+    label.style.color = '#c6d4df';
+
+    // Blinking red dot using Web Animations API
+    dot.animate(
+      [{ opacity: '1' }, { opacity: '0.15' }, { opacity: '1' }],
+      { duration: 1400, iterations: Infinity, easing: 'ease-in-out' },
+    );
 
     const bold = el('strong');
     bold.textContent = `${count} report${count > 1 ? 's' : ''}`;
@@ -223,7 +229,7 @@ function updateStatus(
 
     const link = el(
       'a',
-      { color: '#8f98a0', textDecoration: 'underline' },
+      { color: '#c6d4df', textDecoration: 'underline' },
       {
         href: `${SITE_URL}?steamId=${steamId}`,
         target: '_blank',
@@ -231,8 +237,8 @@ function updateStatus(
       },
     );
     link.textContent = 'View';
-    link.addEventListener('mouseenter', () => { link.style.color = '#c6d4df'; });
-    link.addEventListener('mouseleave', () => { link.style.color = '#8f98a0'; });
+    link.addEventListener('mouseenter', () => { link.style.color = '#fff'; });
+    link.addEventListener('mouseleave', () => { link.style.color = '#c6d4df'; });
     label.appendChild(link);
   }
 }
