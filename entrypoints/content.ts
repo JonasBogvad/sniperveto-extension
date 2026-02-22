@@ -136,6 +136,12 @@ function createPanel(
   });
   panel.id = 'sniperveto-panel';
 
+  // Brand icon
+  const icon = el('img', { width: '16px', height: '16px', objectFit: 'contain', flexShrink: '0' }, {
+    src: chrome.runtime.getURL('icons/icon-16.png'),
+    alt: 'SniperVeto',
+  });
+
   // Small brand label
   const brand = el('span', { color: '#8f98a0', fontSize: '11px', letterSpacing: '0.03em' });
   brand.textContent = 'SniperVeto';
@@ -182,6 +188,7 @@ function createPanel(
   report.addEventListener('mouseenter', () => { report.style.color = '#c6d4df'; });
   report.addEventListener('mouseleave', () => { report.style.color = '#8f98a0'; });
 
+  panel.appendChild(icon);
   panel.appendChild(brand);
   panel.appendChild(divider);
   panel.appendChild(dot);
