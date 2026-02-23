@@ -25,12 +25,6 @@ Injects a status panel directly into Steam Community profile pages. Open any Ste
 
 ---
 
-## Install
-
-Available on the Chrome Web Store — works on Chrome and Edge.
-
----
-
 ## Tech Stack
 
 | Layer | Technology |
