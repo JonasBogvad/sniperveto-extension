@@ -1,55 +1,46 @@
-# SniperVeto Extension
+<div align="center">
+  <img src="icons/icon-128.png" alt="SniperVeto" width="96" />
 
-Chrome/Edge browser extension that checks Steam profile pages against the [SniperVeto](https://sniperveto.vercel.app) stream sniper database.
+  <br />
+  <br />
+
+  **Browser extension for the SniperVeto stream sniper database.**
+
+  [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+  [![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+  [![Chrome](https://img.shields.io/badge/Chrome-MV3-4285F4?logo=googlechrome&logoColor=white)](https://chrome.google.com/webstore)
+
+  [**→ sniperveto.app**](https://sniperveto.app)
+</div>
+
+---
 
 ## What it does
 
-Injects a status panel on Steam profile pages (`steamcommunity.com/profiles/*` and `/id/*`) showing whether the player has reports in the SniperVeto database. Includes a direct link to report the player with Steam ID and name pre-filled.
+Injects a status panel directly into Steam Community profile pages. Open any Steam profile and instantly see whether the player has reports in the [SniperVeto](https://sniperveto.app) database - without leaving Steam.
 
-## Development
+- Clean profiles show a green indicator
+- Reported profiles show a red blinking indicator with the report count and a link to view the evidence
+- Every profile has a Report button that opens SniperVeto with the Steam ID pre-filled
 
-```bash
-npm install
-npm run dev        # builds to .output/chrome-mv3/ and watches for changes
-```
+---
 
-**Load in Edge/Chrome:**
-1. Go to `edge://extensions` (or `chrome://extensions`)
-2. Enable Developer mode
-3. Click Load unpacked
-4. Select `.output/chrome-mv3/`
+## Install
 
-## Build for production
+Available on the Chrome Web Store — works on Chrome and Edge.
 
-```bash
-npm run build      # Chrome/Edge
-npm run zip        # creates a .zip ready for Chrome Web Store upload
-```
+---
 
-## Icons
+## Tech Stack
 
-Icons are required before submitting to the Chrome Web Store. Add PNG files at:
-- `public/icon-16.png`
-- `public/icon-32.png`
-- `public/icon-48.png`
-- `public/icon-128.png`
-
-Then reference them in `wxt.config.ts`:
-```ts
-manifest: {
-  icons: {
-    16: '/icon-16.png',
-    32: '/icon-32.png',
-    48: '/icon-48.png',
-    128: '/icon-128.png',
-  }
-}
-```
-
-## Architecture
-
-| File | Purpose |
+| Layer | Technology |
 |---|---|
-| `entrypoints/content.ts` | Injected on Steam profile pages. Extracts Steam ID, builds panel UI using DOM methods (no innerHTML). |
-| `entrypoints/background.ts` | Service worker. Handles API calls to SniperVeto to avoid CORS restrictions in content scripts. |
-| `wxt.config.ts` | Extension manifest and WXT config. |
+| Framework | WXT |
+| Language | TypeScript (strict) |
+| Target | Chrome/Edge (Manifest V3) |
+
+---
+
+## License
+
+MIT - see [LICENSE](LICENSE) for details.
