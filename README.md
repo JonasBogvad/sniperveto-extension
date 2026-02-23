@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="icons/icon-128.png" alt="SniperVeto" width="96" />
+  <img src="public/icons/icon-128.png" alt="SniperVeto" width="96" />
 
   <br />
   <br />
